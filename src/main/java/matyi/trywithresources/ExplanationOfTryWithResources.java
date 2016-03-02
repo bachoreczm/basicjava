@@ -22,14 +22,25 @@ public class ExplanationOfTryWithResources implements TryWithResources {
       } catch (Throwable t) {
         operationException = t;
       }
-      if (resource != null) {
-        try {
-          resource.close();
-        } catch (IOException ex) {
-          closeException = ex;
-        }
+      closeException = tryToCloseResource(resource, closeException);
+    }
+    handleExceptions(operationException, closeException, initException);
+  }
+
+  private Throwable tryToCloseResource(AutoCloseable resource,
+      Throwable closeException) throws Exception {
+    if (resource != null) {
+      try {
+        resource.close();
+      } catch (IOException ex) {
+        closeException = ex;
       }
     }
+    return closeException;
+  }
+
+  private void handleExceptions(Throwable operationException,
+      Throwable closeException, Throwable initException) throws Throwable {
     if (initException != null) {
       throw initException;
     }

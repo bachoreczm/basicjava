@@ -17,6 +17,12 @@ public abstract class TestTryWithResources {
 
   private TryWithResources tryWithResourceLogic;
 
+  /**
+   * Initializes the business-logic.
+   *
+   * @param tryWithResourceLogic
+   *          the logic of the control statement
+   */
   public TestTryWithResources(TryWithResources tryWithResourceLogic) {
     this.tryWithResourceLogic = tryWithResourceLogic;
   }

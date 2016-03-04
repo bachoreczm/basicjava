@@ -1,5 +1,6 @@
 package matyi.simplefinally;
 
+import static matyi.simplefinally.MockedRunnable.createRunnableWithIllegalStateException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -33,16 +34,16 @@ public abstract class TestSimpleFinally {
     simpleFinally.simpleFinally(operation, afterOperation);
 
     // then
-    assertEquals(1, operation.numberOfCall);
-    assertEquals(1, afterOperation.numberOfCall);
-    assertTrue(operation.lastEndTime <= afterOperation.lastBeginTime);
+    assertEquals(1, operation.getNumberOfCall());
+    assertEquals(1, afterOperation.getNumberOfCall());
+    assertTrue(operation.getLastEndTime() <= afterOperation.getLastBeginTime());
   }
 
   @Test
   public void operationThrowsExceptionButAfterMethodRunsBeforeException() {
     // given
-    MockedRunnable operation = MockedRunnable
-        .createRunnableWithException(OPERATION_EXCEPTION);
+    MockedRunnable operation = createRunnableWithIllegalStateException(
+        OPERATION_EXCEPTION);
     MockedRunnable afterOperation = MockedRunnable.createRunnable();
 
     // when
@@ -51,7 +52,7 @@ public abstract class TestSimpleFinally {
       fail();
     } catch (Throwable ex) {
       // then
-      assertEquals(1, afterOperation.numberOfCall);
+      assertEquals(1, afterOperation.getNumberOfCall());
       assertEquals(OPERATION_EXCEPTION, ex.getMessage());
     }
   }
@@ -59,10 +60,10 @@ public abstract class TestSimpleFinally {
   @Test
   public void everythingThrowsException() {
     // given
-    MockedRunnable operation = MockedRunnable
-        .createRunnableWithException(OPERATION_EXCEPTION);
-    MockedRunnable afterOperation = MockedRunnable
-        .createRunnableWithException(AFTER_EXCEPTION);
+    MockedRunnable operation = createRunnableWithIllegalStateException(
+        OPERATION_EXCEPTION);
+    MockedRunnable afterOperation = createRunnableWithIllegalStateException(
+        AFTER_EXCEPTION);
 
     // when
     try {
@@ -71,40 +72,7 @@ public abstract class TestSimpleFinally {
     } catch (Throwable ex) {
       // then
       assertEquals(AFTER_EXCEPTION, ex.getMessage());
-    }
-  }
-
-  private static final class MockedRunnable implements Runnable {
-
-    private final boolean runThrowsException;
-    private int numberOfCall = 0;
-    private long lastBeginTime;
-    private long lastEndTime;
-    private String exceptionMessage;
-
-    private MockedRunnable(boolean runThrowsException) {
-      this.runThrowsException = runThrowsException;
-    }
-
-    private static MockedRunnable createRunnableWithException(String msg) {
-      MockedRunnable mockedRunnable = new MockedRunnable(true);
-      mockedRunnable.exceptionMessage = msg;
-      return mockedRunnable;
-    }
-
-    private static MockedRunnable createRunnable() {
-      return new MockedRunnable(false);
-    }
-
-    @Override
-    public void run() {
-      lastBeginTime = System.currentTimeMillis();
-      ++numberOfCall;
-      if (runThrowsException) {
-        lastEndTime = System.currentTimeMillis();
-        throw new IllegalStateException(exceptionMessage);
-      }
-      lastEndTime = System.currentTimeMillis();
+      assertEquals(0, ex.getSuppressed().length);
     }
   }
 }
